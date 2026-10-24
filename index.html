@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cancún Apartment Energy Optimization Analysis (Progress 2)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+        rel="stylesheet">
+
+    <!-- MathJax CDN for LaTeX Math Rendering -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        },
+                        opt: {
+                            500: '#10b981',
+                            600: '#059669',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 22px;
+            width: 22px;
+            border-radius: 50%;
+            background: #0284c7;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(2, 132, 199, 0.5);
+            transition: all 0.15s ease-in-out;
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            background: #38bdf8;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col antialiased">
+
+    <!-- Top Navigation Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span
+                            class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-500/10 text-brand-400 border border-brand-500/20">Progress
+                            2</span>
+                        <span class="text-xs text-slate-400">Calculus & System Optimization</span>
+                    </div>
+                    <h1 class="text-xl sm:text-2xl font-bold text-white tracking-tight mt-1">
+                        Cancún Apartment Energy Optimization Analysis
+                    </h1>
+                </div>
+
+                <!-- System Key Parameters Tags -->
+                <div class="flex flex-wrap gap-2 text-xs">
+                    <div
+                        class="bg-slate-800/80 border border-slate-700/60 rounded-lg px-3 py-1.5 flex items-center gap-2">
+                        <i class="fa-solid fa-vector-square text-brand-400"></i>
+                        <span>Area: <strong class="text-slate-200">60 m²</strong></span>
+                    </div>
+                    <div
+                        class="bg-slate-800/80 border border-slate-700/60 rounded-lg px-3 py-1.5 flex items-center gap-2">
+                        <i class="fa-solid fa-users text-brand-400"></i>
+                        <span>Occupants: <strong class="text-slate-200">N = 2</strong></span>
+                    </div>
+                    <div
+                        class="bg-slate-800/80 border border-slate-700/60 rounded-lg px-3 py-1.5 flex items-center gap-2">
+                        <i class="fa-solid fa-bolt text-yellow-400"></i>
+                        <span>Base Load: <strong class="text-slate-200">6.6 kWh/day</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
+
+        <!-- Temperature Slider & Dynamic Live Metric Cards -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+            <div class="absolute -right-10 -top-10 w-40 h-40 bg-brand-500/10 rounded-full blur-3xl pointer-events-none">
+            </div>
+
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-6">
+                <div>
+                    <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-brand-400"></i> Interactive Temperature Simulator
+                    </h2>
+                    <p class="text-sm text-slate-400">Adjust the outdoor average temperature to evaluate instantaneous
+                        rate of change ($dE/dT$) and baseline vs. optimized consumption.</p>
+                </div>
+                <div
+                    class="bg-slate-950 px-4 py-2 rounded-xl border border-slate-800 flex items-center gap-3 self-start lg:self-auto">
+                    <span class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Outdoor Temp
+                        ($T$):</span>
+                    <span id="temp-display" class="text-2xl font-bold font-mono text-brand-400">28.0 °C</span>
+                </div>
+            </div>
+
+            <!-- Slider Control -->
+            <div class="space-y-2 mb-8">
+                <input id="temp-slider" type="range" min="19" max="35" step="0.5" value="28"
+                    class="w-full h-2.5 bg-slate-800 rounded-lg appearance-none cursor-pointer focus:outline-none">
+                <div class="flex justify-between text-xs text-slate-500 font-mono">
+                    <span>19°C (Cool Season Min)</span>
+                    <span class="text-sky-400 font-semibold">24°C (Baseline Threshold)</span>
+                    <span class="text-emerald-400 font-semibold">26°C (Optimized Threshold)</span>
+                    <span>33°C (Peak Summer)</span>
+                    <span>35°C (Extreme Heat)</span>
+                </div>
+            </div>
+
+            <!-- Dynamic Indicators Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+                <!-- Baseline Consumption Card -->
+                <div class="bg-slate-950/70 border border-slate-800/80 rounded-xl p-4 flex flex-col justify-between">
+                    <span class="text-xs font-medium text-slate-400 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-sky-400"></span> Baseline Consumption
+                    </span>
+                    <div class="my-2">
+                        <span id="baseline-val" class="text-2xl font-bold font-mono text-sky-400">11.40</span>
+                        <span class="text-xs text-slate-400"> kWh/day</span>
+                    </div>
+                    <span id="baseline-rate" class="text-xs text-slate-400 font-mono">dE/dT = 1.2 kWh/°C</span>
+                </div>
+
+                <!-- Optimized Consumption Card -->
+                <div class="bg-slate-950/70 border border-slate-800/80 rounded-xl p-4 flex flex-col justify-between">
+                    <span class="text-xs font-medium text-slate-400 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Optimized Consumption
+                    </span>
+                    <div class="my-2">
+                        <span id="opt-val" class="text-2xl font-bold font-mono text-emerald-400">8.00</span>
+                        <span class="text-xs text-slate-400"> kWh/day</span>
+                    </div>
+                    <span id="opt-rate" class="text-xs text-slate-400 font-mono">dE/dT = 0.7 kWh/°C</span>
+                </div>
+
+                <!-- Energy Savings Card -->
+                <div class="bg-slate-950/70 border border-slate-800/80 rounded-xl p-4 flex flex-col justify-between">
+                    <span class="text-xs font-medium text-slate-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-leaf text-emerald-400"></i> Absolute Reduction
+                    </span>
+                    <div class="my-2">
+                        <span id="savings-val" class="text-2xl font-bold font-mono text-emerald-400">-3.40</span>
+                        <span class="text-xs text-slate-400"> kWh/day</span>
+                    </div>
+                    <span id="savings-pct" class="text-xs text-emerald-400/90 font-semibold font-mono">29.8%
+                        reduction</span>
+                </div>
+
+                <!-- Operating Status Card -->
+                <div class="bg-slate-950/70 border border-slate-800/80 rounded-xl p-4 flex flex-col justify-between">
+                    <span class="text-xs font-medium text-slate-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-microchip text-brand-400"></i> System State
+                    </span>
+                    <div class="my-2">
+                        <span id="status-mode" class="text-base font-bold text-slate-200">Active Cooling (AC)</span>
+                    </div>
+                    <div id="status-badge"
+                        class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20 w-max">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> AC Compressor On
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Interactive Chart Section -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-brand-400"></i> Optimization Curve ($E$ vs. $T$)
+                    </h2>
+                    <p class="text-sm text-slate-400">Comparison of daily energy consumption curves and threshold shift
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-4 text-xs font-medium">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-1 rounded bg-sky-400"></span>
+                        <span class="text-slate-300">Baseline ($T_{base}=24^\circ C$)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-1 rounded bg-emerald-400"></span>
+                        <span class="text-slate-300">Optimized ($T_{base}=26^\circ C$)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Canvas Container -->
+            <div class="relative w-full h-[380px] sm:h-[420px]">
+                <canvas id="energyChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Student Calculus & Optimization Analysis -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <!-- 1. Analysis of the rate at which variables change -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+                <div class="space-y-3">
+                    <h3 class="text-base font-semibold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-square-root-variable text-brand-400"></i> 1. Analysis of the rate at which
+                        variables change
+                    </h3>
+                    <p class="text-sm text-slate-300">
+                        To evaluate how energy consumption changes with outdoor temperature, we must take the derivative
+                        of our piecewise function that happens to be our model.
+                    </p>
+
+                    <!-- Math Notation Box -->
+                    <div
+                        class="bg-slate-950 p-4 rounded-xl border border-slate-800/80 font-mono text-xs sm:text-sm text-slate-200 space-y-3 overflow-x-auto">
+                        <div>
+                            <span class="text-slate-400 text-xs block mb-1 font-sans">Piecewise Function:</span>
+                            $$E(T) = \begin{cases} 6.6 & \text{when } T \le 24^\circ\text{C} \\ 6.6 + 1.2(T - 24) &
+                            \text{when } T > 24^\circ\text{C} \end{cases}$$
+                        </div>
+                        <div class="border-t border-slate-800 pt-2">
+                            <span class="text-slate-400 text-xs block mb-1 font-sans">First Derivative with respect to
+                                $T$:</span>
+                            $$\frac{dE}{dT} = \begin{cases} 0 & \text{when } T \le 24^\circ\text{C} \\ 1.2 & \text{when
+                            } T > 24^\circ\text{C} \end{cases}$$
+                        </div>
+                    </div>
+
+                    <div class="text-xs text-slate-300 space-y-1.5 pt-1">
+                        <p class="font-semibold text-slate-200">Based on the analysis we can get some conclusions based
+                            on the temperature:</p>
+                        <p>1. When temperature is less or equal to $24^\circ\text{C}$ energy consumption will not change
+                            and therefore temperature change (below our domain) will not make an impact on the
+                            consumption of the model.</p>
+                        <p>2. When temperature is above $24^\circ\text{C}$ daily energy consumption increases at a rate
+                            of 1.2 kWh per additional degree of temperature.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Energy consumption optimization -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+                <div class="space-y-3">
+                    <h3 class="text-base font-semibold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-brand-400"></i> 2. Energy consumption optimization
+                    </h3>
+                    <p class="text-sm text-slate-300">
+                        To optimize the model, it is required to find the critical points where $\frac{dE}{dT} = 0$ or
+                        where the derivative is undefined. It is important to make clear that the critical points must
+                        be inside of the domain which in this case is $[19^\circ\text{C}, 33^\circ\text{C}]$.
+                    </p>
+
+                    <div class="space-y-3 text-xs text-slate-300">
+                        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80">
+                            <span class="font-semibold text-slate-200 block mb-1 text-sm">A. Global minimum
+                                consumption</span>
+                            <p>
+                                The minimum value occurs at any temperature $T \le 24^\circ\text{C}$. For this part of
+                                the piecewise function, $E(T)$ is equal to 6.6. And because there is no $T$ in which we
+                                can place values for $T \le 24^\circ\text{C}$, the local minimum will always be 6.6 kWh
+                                regardless of temperature $T \le 24^\circ\text{C}$.
+                            </p>
+                        </div>
+
+                        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80">
+                            <span class="font-semibold text-slate-200 block mb-1 text-sm">B. Global maximum
+                                consumption</span>
+                            <p class="mb-1.5">
+                                The maximum value occurs at the extreme of the domain which is the highest temperature
+                                possible ($T = 33^\circ\text{C}$):
+                            </p>
+                            <div
+                                class="font-mono text-slate-200 bg-slate-900/80 p-2 rounded border border-slate-800 text-xs space-y-1">
+                                <p>$E_{\max} = E(T) = 6.6 + 1.2(T - 24)$</p>
+                                <p>$E_{\max} = E(33) = 6.6 + 1.2(33 - 24)$</p>
+                                <p><strong class="text-emerald-400">$E_{\max} = 17.4\text{ kWh/day}$</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- 3. Exploration of passive materials and ventilation -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+            <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                <i class="fa-solid fa-building-user text-brand-400"></i> 3. Exploration of insulating materials and
+                passive ventilation
+            </h2>
+            <p class="text-sm text-slate-300">
+                To lower the system’s dependence on outdoor temperature, it is suggested that the following
+                modifications are implemented:
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/80 space-y-2">
+                    <span class="text-xs font-semibold text-brand-400 font-mono">Modification 1</span>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Adding thermal insulation by layers in the walls and roof made of expanded polystyrene will
+                        reduce the thermal transmittance coefficient, lowering the slope from <strong>1.2</strong> to
+                        approximately <strong>0.7 kWh/°C</strong>.
+                    </p>
+                </div>
+
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/80 space-y-2">
+                    <span class="text-xs font-semibold text-emerald-400 font-mono">Modification 2</span>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Installing double glazed windows will prevent heat to be trapped in such a small space, shifting
+                        the cooling threshold from <strong>24°C</strong> to <strong>26°C</strong>.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-slate-900/50 py-6 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4">
+            Instituto Tecnológico y de Estudios Superiores de Monterrey — Differential and Integral Calculus
+        </div>
+    </footer>
+
+    <!-- Logic & Chart Execution JavaScript -->
+    <script>
+        // Mathematical Functions
+        function calcBaseline(T) {
+            if (T <= 24) return 6.6;
+            return 6.6 + 1.2 * (T - 24);
+        }
+
+        function calcOptimized(T) {
+            if (T <= 26) return 6.6;
+            return 6.6 + 0.7 * (T - 26);
+        }
+
+        function calcBaselineRate(T) {
+            if (T < 24) return 0;
+            if (T === 24) return NaN; // Corner Point
+            return 1.2;
+        }
+
+        function calcOptimizedRate(T) {
+            if (T < 26) return 0;
+            if (T === 26) return NaN; // Corner Point
+            return 0.7;
+        }
+
+        // Domain points generation
+        const temps = [];
+        const baselineData = [];
+        const optData = [];
+
+        for (let t = 19; t <= 35; t += 0.5) {
+            temps.push(t);
+            baselineData.push(calcBaseline(t));
+            optData.push(calcOptimized(t));
+        }
+
+        // Initialize Chart.js
+        const ctx = document.getElementById('energyChart').getContext('2d');
+
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: temps,
+                datasets: [
+                    {
+                        label: 'Baseline Model E(T)',
+                        data: baselineData,
+                        borderColor: '#38bdf8',
+                        backgroundColor: 'rgba(56, 189, 248, 0.05)',
+                        borderWidth: 2.5,
+                        fill: true,
+                        tension: 0,
+                        pointRadius: 0,
+                        pointHoverRadius: 6
+                    },
+                    {
+                        label: 'Optimized Model E_opt(T)',
+                        data: optData,
+                        borderColor: '#34d399',
+                        backgroundColor: 'rgba(52, 211, 153, 0.05)',
+                        borderWidth: 2.5,
+                        fill: true,
+                        tension: 0,
+                        pointRadius: 0,
+                        pointHoverRadius: 6
+                    },
+                    {
+                        label: 'Current Selected Point (Baseline)',
+                        data: [],
+                        borderColor: '#38bdf8',
+                        backgroundColor: '#38bdf8',
+                        pointRadius: 7,
+                        pointHoverRadius: 9,
+                        showLine: false
+                    },
+                    {
+                        label: 'Current Selected Point (Optimized)',
+                        data: [],
+                        borderColor: '#34d399',
+                        backgroundColor: '#34d399',
+                        pointRadius: 7,
+                        pointHoverRadius: 9,
+                        showLine: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: '#0f172a',
+                        titleColor: '#f8fafc',
+                        bodyColor: '#cbd5e1',
+                        borderColor: '#334155',
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: true,
+                        callbacks: {
+                            title: function (items) {
+                                return `Outdoor Temperature: ${items[0].label} °C`;
+                            },
+                            label: function (context) {
+                                if (context.datasetIndex > 1) return null;
+                                return `${context.dataset.label}: ${context.raw.toFixed(2)} kWh/day`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Outdoor Average Temperature (°C)',
+                            color: '#94a3b8',
+                            font: { family: 'Inter', size: 12, weight: '500' }
+                        },
+                        grid: {
+                            color: 'rgba(51, 65, 85, 0.3)'
+                        },
+                        ticks: {
+                            color: '#64748b',
+                            font: { family: 'JetBrains Mono', size: 11 },
+                            callback: function (val, index) {
+                                const t = temps[index];
+                                return (t % 2 === 0 || t === 24 || t === 26) ? t + '°C' : '';
+                            }
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Daily Energy Consumption (kWh/day)',
+                            color: '#94a3b8',
+                            font: { family: 'Inter', size: 12, weight: '500' }
+                        },
+                        min: 5,
+                        max: 20,
+                        grid: {
+                            color: 'rgba(51, 65, 85, 0.3)'
+                        },
+                        ticks: {
+                            color: '#64748b',
+                            font: { family: 'JetBrains Mono', size: 11 },
+                            stepSize: 2.5
+                        }
+                    }
+                }
+            },
+            plugins: [{
+                id: 'thresholdLines',
+                afterDraw: (chart) => {
+                    const xAxis = chart.scales.x;
+                    const yAxis = chart.scales.y;
+                    const ctx = chart.ctx;
+
+                    function drawLine(tempVal, labelText, color) {
+                        const idx = temps.indexOf(tempVal);
+                        if (idx !== -1) {
+                            const xPixel = xAxis.getPixelForValue(idx);
+                            ctx.save();
+                            ctx.beginPath();
+                            ctx.setLineDash([4, 4]);
+                            ctx.moveTo(xPixel, yAxis.top);
+                            ctx.lineTo(xPixel, yAxis.bottom);
+                            ctx.lineWidth = 1.5;
+                            ctx.strokeStyle = color;
+                            ctx.stroke();
+
+                            ctx.font = '10px JetBrains Mono';
+                            ctx.fillStyle = color;
+                            ctx.fillText(labelText, xPixel + 5, yAxis.top + 15);
+                            ctx.restore();
+                        }
+                    }
+
+                    drawLine(24, 'T_base = 24°C', '#38bdf8');
+                    drawLine(26, 'T_opt = 26°C', '#34d399');
+                }
+            }]
+        });
+
+        // UI DOM Elements
+        const slider = document.getElementById('temp-slider');
+        const tempDisplay = document.getElementById('temp-display');
+        const baselineVal = document.getElementById('baseline-val');
+        const baselineRate = document.getElementById('baseline-rate');
+        const optVal = document.getElementById('opt-val');
+        const optRate = document.getElementById('opt-rate');
+        const savingsVal = document.getElementById('savings-val');
+        const savingsPct = document.getElementById('savings-pct');
+        const statusMode = document.getElementById('status-mode');
+        const statusBadge = document.getElementById('status-badge');
+
+        // Update Dashboard Elements Logic
+        function updateDashboard(T) {
+            tempDisplay.innerText = parseFloat(T).toFixed(1) + ' °C';
+
+            const baseE = calcBaseline(T);
+            const optE = calcOptimized(T);
+            const diff = optE - baseE;
+            const pct = (diff / baseE) * 100;
+
+            const baseR = calcBaselineRate(T);
+            const optR = calcOptimizedRate(T);
+
+            baselineVal.innerText = baseE.toFixed(2);
+            optVal.innerText = optE.toFixed(2);
+            savingsVal.innerText = diff.toFixed(2);
+            savingsPct.innerText = `${Math.abs(pct).toFixed(1)}% reduction`;
+
+            if (isNaN(baseR)) {
+                baselineRate.innerText = "dE/dT = Corner Point (Undefined)";
+            } else {
+                baselineRate.innerText = `dE/dT = ${baseR.toFixed(1)} kWh/°C`;
+            }
+
+            if (isNaN(optR)) {
+                optRate.innerText = "dE/dT = Corner Point (Undefined)";
+            } else {
+                optRate.innerText = `dE/dT = ${optR.toFixed(1)} kWh/°C`;
+            }
+
+            if (T <= 24) {
+                statusMode.innerText = "Passive Ventilation";
+                statusBadge.className = "inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 w-max";
+                statusBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> AC Off / Passive Only`;
+            } else if (T <= 26) {
+                statusMode.innerText = "Optimized Passive Zone";
+                statusBadge.className = "inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-sky-500/10 text-sky-400 border border-sky-500/20 w-max";
+                statusBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span> Baseline AC On / Opt AC Off`;
+            } else {
+                statusMode.innerText = "Active Air Conditioning";
+                statusBadge.className = "inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20 w-max";
+                statusBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> AC Compressor Active`;
+            }
+
+            const pointIndex = temps.indexOf(parseFloat(T));
+            if (pointIndex !== -1) {
+                const selectedBaselinePoint = Array(temps.length).fill(null);
+                const selectedOptPoint = Array(temps.length).fill(null);
+
+                selectedBaselinePoint[pointIndex] = baseE;
+                selectedOptPoint[pointIndex] = optE;
+
+                chart.data.datasets[2].data = selectedBaselinePoint;
+                chart.data.datasets[3].data = selectedOptPoint;
+                chart.update('none');
+            }
+        }
+
+        slider.addEventListener('input', (e) => {
+            updateDashboard(e.target.value);
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            updateDashboard(slider.value);
+        });
+    </script>
+</body>
+
+</html>
